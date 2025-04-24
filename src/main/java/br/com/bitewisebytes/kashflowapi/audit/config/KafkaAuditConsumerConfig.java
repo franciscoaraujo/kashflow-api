@@ -22,22 +22,20 @@ import java.util.Map;
 @Configuration
 public class KafkaAuditConsumerConfig {
 
-    //private static final String BOOTSTRAP_SERVERS = "wallet_kafka:9092";
-    private static final String BOOTSTRAP_SERVERS = "localhost:9093";
+    private static final String BOOTSTRAP_SERVERS = "localhost:9093"; // or "wallet_kafka:9092" in Docker
     private static final String GROUP_ID = "wallet-consumer-group";
 
     @Bean
     public ConsumerFactory<String, TransactionWallet> auditConsumerFactory() {
-
         JsonDeserializer<TransactionWallet> deserializer = new JsonDeserializer<>(TransactionWallet.class);
         deserializer.addTrustedPackages("*");
-        deserializer.setUseTypeMapperForKey(false); // ou true dependendo do produtor
+        deserializer.setUseTypeMapperForKey(false);
 
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, GROUP_ID);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, deserializer);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deserializer);
@@ -49,13 +47,6 @@ public class KafkaAuditConsumerConfig {
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        return new DefaultKafkaProducerFactory<>(props);
-    }
-
-    public ProducerFactory<String, String> stringProducerFactory() {
-        Map<String, Object> props = new HashMap<>();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         return new DefaultKafkaProducerFactory<>(props);
     }
 
@@ -83,10 +74,5 @@ public class KafkaAuditConsumerConfig {
         factory.setCommonErrorHandler(new DefaultErrorHandler(recoverer, new FixedBackOff(2000L, 3)));
 
         return factory;
-    }
-
-    @Bean
-    public KafkaTemplate<String, String> kafkaTemplate() {
-        return new KafkaTemplate<>(stringProducerFactory());
     }
 }

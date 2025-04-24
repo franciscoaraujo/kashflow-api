@@ -28,7 +28,7 @@ public class WalletTransactionConsumer {
         this.auditRepository = auditRepository;
     }
 
-    @KafkaListener(topics = "wallet-transactions", groupId = "wallet-consumer-group")
+    @KafkaListener(topics = "wallet.audit.transaction", groupId = "wallet-consumer-group")
     public void consumeTransaction(ConsumerRecord<String, String> record, Acknowledgment ack) {
         try {
             String message = record.value();

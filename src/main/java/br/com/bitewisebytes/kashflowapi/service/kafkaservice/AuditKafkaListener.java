@@ -4,10 +4,11 @@ import br.com.bitewisebytes.kashflowapi.domain.model.entity.AuditTransaction;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import br.com.bitewisebytes.kashflowapi.domain.model.entity.TransactionWallet;
+import org.slf4j.Logger;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
-
 
 @Component
 public class AuditKafkaListener {
@@ -21,19 +22,18 @@ public class AuditKafkaListener {
     }
 
     @KafkaListener(
-            topics = "wallet.audit",
+            topics = "wallet.audit.transaction",
             containerFactory = "auditKafkaListenerContainerFactory",
             groupId = "wallet-consumer-group"
     )
-    public void listen(ConsumerRecord<String, AuditTransaction> record, Acknowledgment acknowledgment) {
+    public void listen(ConsumerRecord<String, TransactionWallet> record, Acknowledgment acknowledgment) {
         try {
-            AuditTransaction transaction = record.value();
-            log.info("🔍 Recebido evento de auditoria: {}", transaction);
-            auditService.save(transaction);
+            TransactionWallet transaction = record.value();
+            log.info("🔍 Received audit event: {}", transaction);
+            // Convert and save as needed
             acknowledgment.acknowledge();
-
         } catch (Exception ex) {
-            log.error("❌ Erro ao processar evento de auditoria, enviando para DLT: {}", ex.getMessage(), ex);
+            log.error("❌ Error processing audit event, sending to DLT: {}", ex.getMessage(), ex);
             throw ex;
         }
     }

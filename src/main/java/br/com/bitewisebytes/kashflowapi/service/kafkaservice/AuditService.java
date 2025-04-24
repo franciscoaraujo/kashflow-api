@@ -54,6 +54,7 @@ public class AuditService {
 
         log.info("[AUDIT] Enviando evento para Kafka: {}", autidWalletTransaction);
 
+
         kafkaTemplateWallet.send("wallet.audit.transaction", "wallet.audit.transaction", autidWalletTransaction);
     }
 

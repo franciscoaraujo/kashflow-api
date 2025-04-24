@@ -5,11 +5,13 @@ import br.com.bitewisebytes.kashflowapi.domain.exceptions.WalletNotFoundExceptio
 import br.com.bitewisebytes.kashflowapi.domain.model.entity.TransactionWallet;
 import br.com.bitewisebytes.kashflowapi.domain.model.entity.Transfer;
 import br.com.bitewisebytes.kashflowapi.domain.model.entity.Wallet;
+import br.com.bitewisebytes.kashflowapi.domain.model.enums.TransactionStatus;
 import br.com.bitewisebytes.kashflowapi.domain.model.enums.TransactionType;
 import br.com.bitewisebytes.kashflowapi.domain.repository.TransactionRepository;
 import br.com.bitewisebytes.kashflowapi.domain.repository.TransferRepository;
 import br.com.bitewisebytes.kashflowapi.domain.repository.WalletRepository;
 import br.com.bitewisebytes.kashflowapi.dto.request.WalletRequestTransferDto;
+import br.com.bitewisebytes.kashflowapi.service.kafkaservice.AuditService;
 import br.com.bitewisebytes.kashflowapi.service.transactions.TransactionTransfer;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -26,16 +28,19 @@ public class TransferService {
     private final WalletRepository walletRepository;
     private final TransactionTransfer transactionTransfer;
     private final TransferRepository transferRepository;
+    private final AuditService auditService;
 
     public TransferService(
             WalletRepository walletRepository,
             TransactionTransfer transactionTransfer,
             TransactionRepository transactionRepository,
-            TransferRepository transferRepository
+            TransferRepository transferRepository,
+            AuditService auditService
     ) {
         this.walletRepository = walletRepository;
         this.transactionTransfer= transactionTransfer;
         this.transferRepository = transferRepository;
+        this.auditService = auditService;
     }
 
     @Transactional
@@ -79,6 +84,13 @@ public class TransferService {
         transfer.setCreatedAt(LocalDateTime.now());
 
         transferRepository.save(transfer);
+
+        auditService.logAudit(
+                walletTo,
+                TransactionType.TRANSFER_OUT,
+                amount,
+                "Transfer to wallet " + walletTo.getWalletNumber()
+        );
 
         //TODO: Log audit event for transfer
         walletFrom.setBalance(walletFrom.getBalance().subtract(amount));

@@ -17,8 +17,18 @@ spring:
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       listener:
         ack-mode: manual
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    properties:
+        spring.json.add.type.headers: false
 
 resilience4j:
+  retry:
+    instances:
+      kafkaProducerRetry:
+        max-attempts: 3
+        wait-duration: 2s
   circuitbreaker:
     instances:
       kafkaCircuitBreaker:
@@ -30,28 +40,29 @@ resilience4j:
         permitted-number-of-calls-in-half-open-state: 3
         register-health-indicator: true
         automatic-transition-from-open-to-half-open-enabled: true
+
 management:
   endpoints:
-    enablesd-by-default: false
+    enabled-by-default: false
     web:
       exposure:
         include: 'health, prometheus'
     endpoint:
-        health:
-          enabled: true
-          show-details: always
-        prometheus:
-          enabled: true
-        metrics:
-          enabled: true
-        info:
-          enabled: true
-
-  health:
-    kafka:
-      enabled: true
+      health:
+        enabled: true
+        show-details: always
+      prometheus:
+        enabled: true
+      metrics:
+        enabled: true
+      info:
+        enabled: true
 
 logging:
   level:
     org.apache.kafka: DEBUG
     org.springframework.kafka: DEBUG
+
+health:
+  kafka:
+    enabled: true
