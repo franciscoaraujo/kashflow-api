@@ -1,0 +1,134 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: wallet_postgres
+    environment:
+      POSTGRES_DB: wallet_db
+      POSTGRES_USER: wallet_user
+      POSTGRES_PASSWORD: wallet_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - wallet-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wallet_user -d wallet_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.1
+    container_name: wallet_zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - wallet-net
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rest-proxy:
+    image: confluentinc/cp-kafka-rest:7.5.1
+    container_name: wallet_rest_proxy
+    depends_on:
+      - kafka
+    ports:
+      - "8082:8082"
+    environment:
+      KAFKA_REST_HOST_NAME: wallet_rest_proxy
+      KAFKA_REST_BOOTSTRAP_SERVERS: PLAINTEXT://wallet_kafka:9092
+      KAFKA_REST_LISTENERS: http://0.0.0.0:8082
+    networks:
+      - wallet-net
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka_ui
+    ports:
+      - "8085:8080"
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=wallet-cluster
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=wallet_kafka:9092
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=wallet_zookeeper:2181
+    depends_on:
+      - kafka
+      - zookeeper
+    networks:
+      - wallet-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.1
+    container_name: wallet_kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: wallet_zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://wallet_kafka:9092,PLAINTEXT_HOST://localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_MAX_REQUEST_SIZE: 209715200
+      KAFKA_MESSAGE_MAX_BYTES: 209715200
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LOG_RETENTION_MS: 86400000
+      KAFKA_JMX_PORT: 9999
+      KAFKA_JMX_HOSTNAME: localhost
+    networks:
+      - wallet-net
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - wallet-net
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - wallet-net
+
+  wallet-service:
+    build: .
+    container_name: wallet_app
+    depends_on:
+      - postgres
+      - kafka
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://wallet_postgres:5432/wallet_db
+      SPRING_DATASOURCE_USERNAME: wallet_user
+      SPRING_DATASOURCE_PASSWORD: wallet_pass
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: wallet_kafka:9092
+    networks:
+      - wallet-net
+    restart: on-failure
+
+volumes:
+  postgres_data:
+
+networks:
+  wallet-net:
+    driver: bridge
