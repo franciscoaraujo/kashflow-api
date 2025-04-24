@@ -17,6 +17,11 @@ spring:
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       listener:
         ack-mode: manual
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    properties:
+      spring.json.add.type.headers: false
 
 resilience4j:
   retry:
@@ -25,35 +30,6 @@ resilience4j:
         max-attempts: 3
         wait-duration: 2s
 
-  circuitbreaker:
-    instances:
-      kafkaCircuitBreaker:
-        sliding-window-type: COUNT_BASED  # Corrigido para COUNT_BASED
-        sliding-window-size: 5
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
-
-  spring:
-    datasource:
-      url: jdbc:postgresql://wallet_postgres:5432/wallet_db
-      username: wallet_user
-      password: wallet_pass
-    jpa:
-      hibernate:
-        ddl-auto: update
-      show-sql: false
-
-    kafka:
-      bootstrap-servers: wallet_kafka:9092
-      consumer:
-        group-id: wallet-consumer-group
-        auto-offset-reset: earliest
-        key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-        value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-        listener:
-          ack-mode: manual
-
-resilience4j:
   circuitbreaker:
     instances:
       kafkaCircuitBreaker:
@@ -66,21 +42,28 @@ resilience4j:
         register-health-indicator: true
         automatic-transition-from-open-to-half-open-enabled: true
 
-    circuitbreaker:
-      instances:
-        kafkaCircuitBreaker:
-          sliding-window-type: COUNT_BASED  # Corrigido para COUNT_BASED
-          sliding-window-size: 5
-          failure-rate-threshold: 50
-          wait-duration-in-open-state: 10s
-
-    management:
-      endpoints:
-        enabled-by-default: false
-        web:
-          exposure:
-            include: *
-
-    health:
-      kafka:
+management:
+  endpoints:
+    enabled-by-default: false
+    web:
+      exposure:
+        include: 'health, prometheus'
+    endpoint:
+      health:
         enabled: true
+        show-details: always
+      prometheus:
+        enabled: true
+      metrics:
+        enabled: true
+      info:
+        enabled: true
+
+logging:
+  level:
+    org.apache.kafka: DEBUG
+    org.springframework.kafka: DEBUG
+
+health:
+  kafka:
+    enabled: true

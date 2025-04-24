@@ -21,7 +21,7 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     properties:
-        spring.json.add.type.headers: false
+      spring.json.add.type.headers: false
 
 resilience4j:
   retry:
@@ -29,6 +29,7 @@ resilience4j:
       kafkaProducerRetry:
         max-attempts: 3
         wait-duration: 2s
+
   circuitbreaker:
     instances:
       kafkaCircuitBreaker:
