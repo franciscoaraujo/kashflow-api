@@ -40,12 +40,6 @@ public class WithdrawService {
         if (wallet.getBalance().compareTo(walletWithdrawDto.amount()) < 0) {
             throw new TransactionWalletException("Insufficient balance.", "INSUFFICIENT_BALANCE");
         }
-        if (wallet.getBalance().compareTo(walletWithdrawDto.amount()) == 0) {
-            throw new TransactionWalletException("Withdrawal amount equals wallet balance.", "EQUAL_BALANCE");
-        }
-        if (wallet.getWalletNumber().compareTo(walletWithdrawDto.walletNumber()) == 0) {
-            throw new TransactionWalletException("You cannot withdraw from the same wallet.", "SAME_WALLET");
-        }
 
         wallet.setBalance(wallet.getBalance().subtract(walletWithdrawDto.amount()));
         walletRepository.save(wallet);
