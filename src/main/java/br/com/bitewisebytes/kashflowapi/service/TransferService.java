@@ -63,7 +63,7 @@ public class TransferService {
             throw new TransactionWalletException("Amount must be greater than zero.", CODE_ERROR_INVALID_AMOUNT);
         }
 
-        if (walletTo.getWalletNumber().compareTo(walletRequestTransferDt.walletNumberDestination()) == 0) {
+        if (walletRequestTransferDt.walletNumberOrigin().compareTo(walletRequestTransferDt.walletNumberDestination()) == 0) {
             throw new TransactionWalletException("You cannot tranfer from the same wallet.", "SAME_WALLET");
         }
 
