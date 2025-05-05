@@ -23,8 +23,7 @@ import java.util.Map;
 public class KafkaAuditConsumerConfig {
 
 
-    private static final String BOOTSTRAP_SERVERS = "wallet_kafka:9092"; // or "wallet_kafka:9092" in Docker
-    //private static final String BOOTSTRAP_SERVERS = "localhost:9093"; //
+    private static final String BOOTSTRAP_SERVERS = "${spring.kafka.bootstrap-servers}"; // or "wallet_kafka:9092" in Docker
     private static final String GROUP_ID = "wallet-consumer-group";
 
     @Bean

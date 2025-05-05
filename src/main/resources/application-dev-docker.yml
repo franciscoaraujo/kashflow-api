@@ -9,7 +9,7 @@ spring:
     show-sql: false
 
   kafka:
-    bootstrap-servers: wallet_kafka:9092
+    bootstrap-servers: wallet_kafka :9092
     consumer:
       group-id: wallet-consumer-group
       auto-offset-reset: earliest
