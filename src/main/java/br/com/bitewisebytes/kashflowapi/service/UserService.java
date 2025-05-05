@@ -60,7 +60,8 @@ public class UserService {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getDocumentNumber()
+                user.getDocumentNumber(),
+                walletResponse.walletNumber()
         );
     }
 
@@ -108,7 +109,8 @@ public class UserService {
                     user.getId(),
                     user.getName(),
                     user.getEmail(),
-                    user.getDocumentNumber()
+                    user.getDocumentNumber(),
+                    user.getWallets().get(0).getWalletNumber()
             );
 
         } catch (Exception e) {

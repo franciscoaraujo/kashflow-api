@@ -64,7 +64,7 @@ public class TransferService {
         }
 
         if (walletTo.getWalletNumber().compareTo(walletRequestTransferDt.walletNumberDestination()) == 0) {
-            throw new TransactionWalletException("You cannot withdraw from the same wallet.", "SAME_WALLET");
+            throw new TransactionWalletException("You cannot tranfer from the same wallet.", "SAME_WALLET");
         }
 
         TransactionWallet senderTransaction = transactionTransfer.doTransaction(

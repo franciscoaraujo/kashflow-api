@@ -8,7 +8,7 @@ public record UserResponseLastWalletDto(
         Long id,
         String name,
         String email,
-        String document
-
+        String document,
+        String walletNumber
 ) {
 }
