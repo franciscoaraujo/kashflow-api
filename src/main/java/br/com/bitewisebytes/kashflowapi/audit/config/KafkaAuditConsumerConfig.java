@@ -19,6 +19,8 @@ import org.springframework.util.backoff.FixedBackOff;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.springframework.kafka.support.serializer.JsonDeserializer.TRUSTED_PACKAGES;
+
 @Configuration
 public class KafkaAuditConsumerConfig {
 
@@ -30,7 +32,7 @@ public class KafkaAuditConsumerConfig {
     @Bean
     public ConsumerFactory<String, TransactionWallet> auditConsumerFactory() {
         JsonDeserializer<TransactionWallet> deserializer = new JsonDeserializer<>(TransactionWallet.class);
-        deserializer.addTrustedPackages("*");
+        deserializer.addTrustedPackages(TRUSTED_PACKAGES);
         deserializer.setUseTypeMapperForKey(false);
 
         Map<String, Object> props = new HashMap<>();

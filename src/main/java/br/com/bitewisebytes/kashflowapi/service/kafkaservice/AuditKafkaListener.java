@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import br.com.bitewisebytes.kashflowapi.domain.model.entity.TransactionWallet;
 import org.slf4j.Logger;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
@@ -16,9 +17,11 @@ public class AuditKafkaListener {
     private static final Logger log = LoggerFactory.getLogger(AuditKafkaListener.class);
 
     private final AuditService auditService;
+    private final KafkaTemplate<String, TransactionWallet> kafkaTemplate;
 
-    public AuditKafkaListener(AuditService auditService) {
+    public AuditKafkaListener(AuditService auditService, KafkaTemplate<String, TransactionWallet> kafkaTemplate) {
         this.auditService = auditService;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     @KafkaListener(
@@ -34,7 +37,8 @@ public class AuditKafkaListener {
             acknowledgment.acknowledge();
         } catch (Exception ex) {
             log.error("❌ Error processing audit event, sending to DLT: {}", ex.getMessage(), ex);
-            throw ex;
+            kafkaTemplate.send("wallet.audit.transaction.DLT", record.key(), record.value());
+            acknowledgment.acknowledge(); // para evitar retry infinito
         }
     }
 }

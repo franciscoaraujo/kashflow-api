@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 
 @Service
-public class WalletTransactionConsumer {
+public class    WalletTransactionConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(WalletTransactionConsumer.class);
 
